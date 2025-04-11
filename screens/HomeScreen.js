@@ -13,54 +13,67 @@ import { colors, typography, spacing, shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
-
-// Mock data for upcoming sessions
-const mockSessions = [
-  {
-    id: '1',
-    title: 'Calculus Study Group',
-    course: 'Math',
-    date: 'Today, 3:00 PM',
-    location: 'Library Room 203',
-    members: 5,
-  },
-  {
-    id: '2',
-    title: 'Physics Lab Review',
-    course: 'Science',
-    date: 'Tomorrow, 2:00 PM',
-    location: 'Science Building Room 101',
-    members: 3,
-  },
-  {
-    id: '3',
-    title: 'History Essay Workshop',
-    course: 'History',
-    date: 'Friday, 4:00 PM',
-    location: 'Humanities Building Room 305',
-    members: 4,
-  },
-];
+import { getUpcomingSessions, isSessionJoined, joinSession } from '../data/mockSessions';
 
 export const HomeScreen = () => {
+  const upcomingSessions = getUpcomingSessions();
+
+  const formatDate = (date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const sessionDate = new Date(date);
+
+    if (sessionDate.toDateString() === today.toDateString()) {
+      return `Today, ${sessionDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+    } else if (sessionDate.toDateString() === tomorrow.toDateString()) {
+      return `Tomorrow, ${sessionDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+    } else {
+      return sessionDate.toLocaleString('en-US', {
+        weekday: 'long',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true
+      });
+    }
+  };
+
   return (
     <ScreenWrapper showBackButton={false}>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
-            <Text style={styles.appTitle}>SmartSesh</Text>
+            <View style={styles.titleContainerStack}>
+              <Text style={styles.appTitle}>SmartSesh</Text>
+              <TouchableOpacity
+                style={styles.settingsButton}
+                onPress={() => router.push('/profile')}
+              >
+                <Ionicons name="settings-outline" size={24} color={colors.textDark} />
+              </TouchableOpacity>
+            </View>
             <View style={styles.divider} />
           </View>
-          <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
-            <Text style={styles.nameText}>Alex!</Text>
+          <View style={styles.headerButtons}>
+
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => router.push('/create-session')}
+            >
+              <View style={styles.createButtonContent}>
+                <Ionicons name="add-circle" size={24} color={colors.textInverse} />
+                <Text style={styles.createButtonText}>Create Session</Text>
+              </View>
+            </TouchableOpacity>
+
           </View>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.viewAllButton}
               onPress={() => router.push('/calendar')}
             >
@@ -69,41 +82,46 @@ export const HomeScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {mockSessions.map((session) => (
+          {upcomingSessions.map((session) => (
             <Card
               key={session.id}
               title={session.title}
-              subtitle={session.date}
-              description={`${session.location} • ${session.members} members`}
+              subtitle={formatDate(session.date)}
+              description={
+                isSessionJoined(session.id)
+                  ? `${session.location}\nAlex (You) and ${session.members - 1} others`
+                  : `${session.location}\n${session.members} members`
+              }
               courseType={session.course}
               onPress={() => router.push(`/session/${session.id}`)}
               footer={
                 <View style={styles.cardFooter}>
-                  <Button
-                    title="Join Session"
-                    size="small"
-                    onPress={() => router.push(`/session/${session.id}/join`)}
-                  />
+                  {isSessionJoined(session.id) ? (
+                    <Button
+                      title="Joined"
+                      size="small"
+                      disabled={true}
+                      style={styles.joinedButton}
+                    />
+                  ) : (
+                    <Button
+                      title="Join Session"
+                      size="small"
+                      onPress={() => {
+                        joinSession(session.id);
+                        router.push(`/session/${session.id}/join`);
+                      }}
+                    />
+                  )}
                 </View>
               }
             />
           ))}
         </View>
 
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
-            <TouchableOpacity
-              style={styles.quickAction}
-              onPress={() => router.push('/create-session')}
-            >
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="add-circle" size={28} color={colors.primary} />
-              </View>
-              <Text style={styles.quickActionText}>Create Session</Text>
-              <Text style={styles.quickActionSubtext}>Start a new study group</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.quickAction}
               onPress={() => router.push('/groups')}
@@ -115,7 +133,7 @@ export const HomeScreen = () => {
               <Text style={styles.quickActionSubtext}>Join existing sessions</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View> */}
       </ScrollView>
     </ScreenWrapper>
   );
@@ -127,41 +145,71 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
   },
   titleContainer: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
+    // flexDirection: 'row',
+    // alignItems: 'center',
+    // justifyContent: "space-between",
+    // gap: spacing.xl,
+  },
+  titleContainerStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: "space-between",
+    gap: spacing.xl,
   },
   appTitle: {
     fontSize: typography.fontSize.xxxl,
     fontFamily: typography.fontFamily.bold,
-    color: colors.primary,
-    letterSpacing: 0.5,
-    marginBottom: spacing.xs,
+    color: colors.textDark,
   },
   divider: {
-    height: 3,
+    height: 4,
     width: 40,
     backgroundColor: colors.primary,
+    marginTop: spacing.xs,
     borderRadius: 2,
   },
   welcomeContainer: {
-    marginTop: spacing.lg,
+    marginBottom: spacing.lg,
   },
   welcomeText: {
     fontSize: typography.fontSize.lg,
+    fontFamily: typography.fontFamily.regular,
     color: colors.textLight,
-    fontFamily: typography.fontFamily.medium,
   },
   nameText: {
     fontSize: typography.fontSize.xxl,
-    color: colors.textDark,
     fontFamily: typography.fontFamily.bold,
-    marginTop: spacing.xs,
+    color: colors.textDark,
+  },
+  createButton: {
+    backgroundColor: colors.primary,
+    borderRadius: spacing.lg,
+    padding: spacing.md,
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  createButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  createButtonText: {
+    fontSize: typography.fontSize.lg,
+    fontFamily: typography.fontFamily.bold,
+    color: colors.textInverse,
+    marginLeft: spacing.sm,
   },
   section: {
     marginBottom: spacing.xl,
-    paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -171,37 +219,33 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: typography.fontSize.xl,
-    color: colors.textDark,
     fontFamily: typography.fontFamily.bold,
+    color: colors.textDark,
   },
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.xs,
   },
   viewAllText: {
-    color: colors.primary,
-    fontSize: typography.fontSize.sm,
+    fontSize: typography.fontSize.md,
     fontFamily: typography.fontFamily.medium,
+    color: colors.primary,
     marginRight: spacing.xs,
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   quickActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-    gap: spacing.md,
+    flexWrap: 'wrap',
+    marginHorizontal: -spacing.sm,
   },
   quickAction: {
-    flex: 1,
+    width: '100%',
+    padding: spacing.md,
     backgroundColor: colors.backgroundDark,
     borderRadius: spacing.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
+    marginBottom: spacing.md,
     ...Platform.select({
       ios: {
         ...shadows.sm,
@@ -212,34 +256,35 @@ const styles = StyleSheet.create({
     }),
   },
   quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
-    ...Platform.select({
-      ios: {
-        ...shadows.sm,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
   },
   quickActionText: {
-    fontSize: typography.fontSize.md,
-    color: colors.textDark,
+    fontSize: typography.fontSize.lg,
     fontFamily: typography.fontFamily.bold,
-    textAlign: 'center',
-    marginTop: spacing.xs,
+    color: colors.textDark,
+    marginBottom: spacing.xs,
   },
   quickActionSubtext: {
-    fontSize: typography.fontSize.sm,
-    color: colors.textLight,
+    fontSize: typography.fontSize.md,
     fontFamily: typography.fontFamily.regular,
-    textAlign: 'center',
-    marginTop: spacing.xs,
+    color: colors.textLight,
+  },
+  joinedButton: {
+    backgroundColor: colors.textLight,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: "flex-end",
+    gap: spacing.xl,
+  },
+  settingsButton: {
+    padding: spacing.sm,
   },
 }); 

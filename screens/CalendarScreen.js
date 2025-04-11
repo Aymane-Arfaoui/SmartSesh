@@ -12,44 +12,16 @@ import { colors, typography, spacing, shadows } from '../constants/theme';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Ionicons } from '@expo/vector-icons';
-
-// Mock data for calendar events
-const mockEvents = [
-  {
-    id: '1',
-    title: 'Calculus Study Group',
-    course: 'Math',
-    date: '2024-04-10',
-    time: '15:00',
-    location: 'Library Room 203',
-    members: 5,
-  },
-  {
-    id: '2',
-    title: 'Physics Lab Review',
-    course: 'Science',
-    date: '2024-04-11',
-    time: '14:00',
-    location: 'Science Building 101',
-    members: 3,
-  },
-  {
-    id: '3',
-    title: 'History Essay Workshop',
-    course: 'History',
-    date: '2024-04-12',
-    time: '16:00',
-    location: 'Humanities Building 305',
-    members: 4,
-  },
-];
+import { Calendar } from 'react-native-calendars';
+import { getSessionsForDate, getAllSessions } from '../data/mockSessions';
 
 export const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week');
+  const [currentWeek, setCurrentWeek] = useState(0);
 
   const getEventsForDate = (date) => {
-    return mockEvents.filter(event => event.date === date.toISOString().split('T')[0]);
+    return getSessionsForDate(date);
   };
 
   const formatDate = (date) => {
@@ -57,6 +29,40 @@ export const CalendarScreen = () => {
     const month = date.toLocaleString('default', { month: 'short' });
     const weekday = date.toLocaleString('default', { weekday: 'short' });
     return { day, month, weekday };
+  };
+
+  const getWeekDates = () => {
+    const dates = [];
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() + (currentWeek * 7));
+    
+    // Adjust to start from Monday
+    const dayOfWeek = startDate.getDay();
+    const diff = startDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    startDate.setDate(diff);
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
+  const getWeekRange = () => {
+    const dates = getWeekDates();
+    const startDate = dates[0];
+    const endDate = dates[6];
+    
+    const startMonth = startDate.toLocaleString('default', { month: 'short' });
+    const endMonth = endDate.toLocaleString('default', { month: 'short' });
+    
+    if (startMonth === endMonth) {
+      return `${startMonth} ${startDate.getDate()} - ${endDate.getDate()}`;
+    } else {
+      return `${startMonth} ${startDate.getDate()} - ${endMonth} ${endDate.getDate()}`;
+    }
   };
 
   const renderDayEvents = () => {
@@ -75,7 +81,7 @@ export const CalendarScreen = () => {
       <Card
         key={event.id}
         title={event.title}
-        subtitle={`${event.time} • ${event.location}`}
+        subtitle={`${event.date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })} • ${event.location}`}
         description={`${event.course} • ${event.members} members`}
         onPress={() => router.push(`/session/${event.id}`)}
       />
@@ -83,37 +89,71 @@ export const CalendarScreen = () => {
   };
 
   const renderDateScroller = () => {
-    return [...Array(7)].map((_, index) => {
-      const date = new Date();
-      date.setDate(date.getDate() + index);
-      const formattedDate = formatDate(date);
-      const isSelected = selectedDate.toDateString() === date.toDateString();
-      const hasEvents = getEventsForDate(date).length > 0;
+    const dates = getWeekDates();
+    
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.dateScroller}
+        contentContainerStyle={styles.dateScrollerContent}
+      >
+        {dates.map((date, index) => {
+          const formattedDate = formatDate(date);
+          const isSelected = selectedDate.toDateString() === date.toDateString();
+          const hasEvents = getEventsForDate(date).length > 0;
 
-      return (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.dateItem,
-            isSelected && styles.dateItemActive,
-            hasEvents && styles.dateItemHasEvents,
-          ]}
-          onPress={() => setSelectedDate(date)}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.weekdayText, isSelected && styles.weekdayTextActive]}>
-            {formattedDate.weekday}
-          </Text>
-          <Text style={[styles.dayText, isSelected && styles.dayTextActive]}>
-            {formattedDate.day}
-          </Text>
-          <Text style={[styles.monthText, isSelected && styles.monthTextActive]}>
-            {formattedDate.month}
-          </Text>
-          {hasEvents && <View style={styles.eventIndicator} />}
-        </TouchableOpacity>
-      );
+          return (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.dateItem,
+                isSelected && styles.dateItemActive,
+                hasEvents && styles.dateItemHasEvents,
+              ]}
+              onPress={() => setSelectedDate(date)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.weekdayText, isSelected && styles.weekdayTextActive]}>
+                {formattedDate.weekday}
+              </Text>
+              <Text style={[styles.dayText, isSelected && styles.dayTextActive]}>
+                {formattedDate.day}
+              </Text>
+              <Text style={[styles.monthText, isSelected && styles.monthTextActive]}>
+                {formattedDate.month}
+              </Text>
+              {hasEvents && <View style={styles.eventIndicator} />}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    );
+  };
+
+  const handleWeekChange = (direction) => {
+    setCurrentWeek(prev => prev + direction);
+  };
+
+  const getMarkedDates = () => {
+    const marked = {};
+    const allSessions = getAllSessions();
+    
+    allSessions.forEach(session => {
+      const dateStr = session.date.toISOString().split('T')[0];
+      marked[dateStr] = {
+        marked: true,
+        dotColor: colors.primary,
+      };
     });
+    
+    marked[selectedDate.toISOString().split('T')[0]] = {
+      selected: true,
+      marked: marked[selectedDate.toISOString().split('T')[0]]?.marked,
+      dotColor: colors.primary,
+    };
+    
+    return marked;
   };
 
   return (
@@ -164,14 +204,53 @@ export const CalendarScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.dateScroller}
-          contentContainerStyle={styles.dateScrollerContent}
-        >
-          {renderDateScroller()}
-        </ScrollView>
+        {viewMode === 'week' ? (
+          <>
+            <View style={styles.weekNavigation}>
+              <TouchableOpacity
+                style={styles.navButton}
+                onPress={() => handleWeekChange(-1)}
+              >
+                <Ionicons name="chevron-back" size={24} color={colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.weekText}>
+                {getWeekRange()}
+              </Text>
+              <TouchableOpacity
+                style={styles.navButton}
+                onPress={() => handleWeekChange(1)}
+              >
+                <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+            {renderDateScroller()}
+          </>
+        ) : (
+          <View style={styles.calendarContainer}>
+            <Calendar
+              current={selectedDate.toISOString().split('T')[0]}
+              onDayPress={(day) => setSelectedDate(new Date(day.dateString))}
+              markedDates={getMarkedDates()}
+              theme={{
+                backgroundColor: colors.background,
+                calendarBackground: colors.background,
+                textSectionTitleColor: colors.textDark,
+                selectedDayBackgroundColor: colors.primary,
+                selectedDayTextColor: colors.textInverse,
+                todayTextColor: colors.primary,
+                dayTextColor: colors.textDark,
+                textDisabledColor: colors.textLight,
+                dotColor: colors.primary,
+                selectedDotColor: colors.textInverse,
+                monthTextColor: colors.textDark,
+                arrowColor: colors.primary,
+                textMonthFontWeight: 'bold',
+                textDayFontSize: 16,
+                textMonthFontSize: 18,
+              }}
+            />
+          </View>
+        )}
 
         <View style={styles.eventsList}>{renderDayEvents()}</View>
       </ScrollView>
@@ -251,11 +330,39 @@ const styles = StyleSheet.create({
     color: colors.textInverse,
     fontFamily: typography.fontFamily.bold,
   },
+  weekNavigation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  navButton: {
+    padding: spacing.sm,
+  },
+  weekText: {
+    fontSize: typography.fontSize.lg,
+    fontFamily: typography.fontFamily.medium,
+    color: colors.textDark,
+  },
   dateScroller: {
     marginBottom: spacing.xl,
   },
   dateScrollerContent: {
     paddingHorizontal: spacing.md,
+  },
+  calendarContainer: {
+    marginBottom: spacing.xl,
+    borderRadius: spacing.lg,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   dateItem: {
     width: 70,
@@ -342,4 +449,6 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     marginTop: spacing.xs,
   },
-}); 
+});
+
+export default CalendarScreen; 

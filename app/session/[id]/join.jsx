@@ -15,7 +15,7 @@ export default function JoinSessionScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.push('/home'),
+          onPress: () => router.replace('/home'),
         },
       ]
     );

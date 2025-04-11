@@ -5,234 +5,217 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Switch,
   Image,
+  Platform,
+  Switch,
 } from 'react-native';
-import { Button } from '../components/Button';
-import { colors, typography, spacing } from '../constants/theme';
+import { colors, typography, spacing, shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { ScreenWrapper } from '../components/ScreenWrapper';
 
-export const ProfileScreen = ({ navigation }) => {
+export const ProfileScreen = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
 
-  const handleLogout = () => {
-    // Mock logout
-    console.log('Logging out...');
-    navigation.navigate('Login');
-  };
-
-  const handleEditProfile = () => {
-    // Mock edit profile
-    console.log('Editing profile...');
+  const handleDarkModeToggle = (value) => {
+    setIsDarkMode(value);
+    // Here you would typically update the app's theme state
+    // This would be handled by a theme context/provider
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.profileHeader}>
-          <View style={styles.avatarContainer}>
+    <ScreenWrapper>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.profileHeader}>
             <Image
-              source={{ uri: 'https://via.placeholder.com/100' }}
-              style={styles.avatar}
+              source={{ uri: 'https://www.profilebakery.com/wp-content/uploads/2023/04/LINKEDIN-Profile-Picture-AI.jpg' }}
+              style={styles.profileImage}
             />
-            <TouchableOpacity
-              style={styles.editAvatarButton}
-              onPress={handleEditProfile}
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>Alex</Text>
+              <Text style={styles.email}>alex@example.com</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Settings</Text>
+          <View style={styles.settingsList}>
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => router.push('/profile/edit')}
             >
-              <Ionicons name="camera" size={20} color={colors.textInverse} />
+              <View style={styles.settingContent}>
+                <Ionicons name="person-outline" size={24} color={colors.textDark} />
+                <Text style={styles.settingText}>Edit Profile</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => router.push('/profile/notifications')}
+            >
+              <View style={styles.settingContent}>
+                <Ionicons name="notifications-outline" size={24} color={colors.textDark} />
+                <Text style={styles.settingText}>Notifications</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => router.push('/profile/privacy')}
+            >
+              <View style={styles.settingContent}>
+                <Ionicons name="lock-closed-outline" size={24} color={colors.textDark} />
+                <Text style={styles.settingText}>Privacy</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.name}>Alex Johnson</Text>
-          <Text style={styles.email}>alex.johnson@university.edu</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Settings</Text>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="person-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Edit Profile</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="lock-closed-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Change Password</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="calendar-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Calendar Settings</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        
-        <View style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="moon-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Dark Mode</Text>
-          </View>
-          <Switch
-            value={isDarkMode}
-            onValueChange={setIsDarkMode}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
         </View>
 
-        <View style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="notifications-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Push Notifications</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.settingsList}>
+            {/* <View style={styles.settingItem}>
+              <View style={styles.settingContent}>
+                <Ionicons name="moon-outline" size={24} color={colors.textDark} />
+                <Text style={styles.settingText}>Dark Mode</Text>
+              </View>
+              <Switch
+                value={isDarkMode}
+                onValueChange={handleDarkModeToggle}
+                trackColor={{ false: colors.borderLight, true: colors.primary }}
+                thumbColor={colors.textInverse}
+              />
+            </View> */}
+
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => router.push('/profile/language')}
+            >
+              <View style={styles.settingContent}>
+                <Ionicons name="language-outline" size={24} color={colors.textDark} />
+                <Text style={styles.settingText}>Language</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
+            </TouchableOpacity>
           </View>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
         </View>
 
-        <View style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="mail-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Email Notifications</Text>
-          </View>
-          <Switch
-            value={emailNotifications}
-            onValueChange={setEmailNotifications}
-            trackColor={{ false: colors.border, true: colors.primary }}
-          />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="help-circle-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Help & Support</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
+        <TouchableOpacity style={styles.logoutButton}>
+          <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="document-text-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Terms of Service</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.settingItem}>
-          <View style={styles.settingInfo}>
-            <Ionicons name="shield-checkmark-outline" size={24} color={colors.text} />
-            <Text style={styles.settingText}>Privacy Policy</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textLight} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.logoutContainer}>
-        <Button
-          title="Log Out"
-          variant="outline"
-          onPress={handleLogout}
-          style={styles.logoutButton}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </ScreenWrapper>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     padding: spacing.lg,
     backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   profileHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.md,
   },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: spacing.md,
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  editAvatarButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: colors.primary,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  profileInfo: {
+    flex: 1,
   },
   name: {
-    fontSize: typography.fontSize.xl,
+    fontSize: typography.fontSize.xxl,
     fontFamily: typography.fontFamily.bold,
     color: colors.textDark,
     marginBottom: spacing.xs,
   },
   email: {
     fontSize: typography.fontSize.md,
-    color: colors.textLight,
     fontFamily: typography.fontFamily.regular,
+    color: colors.textLight,
   },
   section: {
-    padding: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   sectionTitle: {
-    fontSize: typography.fontSize.lg,
+    fontSize: typography.fontSize.xl,
     fontFamily: typography.fontFamily.bold,
     color: colors.textDark,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  settingsList: {
+    backgroundColor: colors.background,
+    borderRadius: spacing.lg,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   settingItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+    width: '100%',
   },
-  settingInfo: {
+  settingContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.sm,
   },
   settingText: {
     fontSize: typography.fontSize.md,
-    color: colors.text,
-    fontFamily: typography.fontFamily.regular,
-    marginLeft: spacing.md,
-  },
-  logoutContainer: {
-    padding: spacing.lg,
+    fontFamily: typography.fontFamily.medium,
+    color: colors.textDark,
   },
   logoutButton: {
-    marginTop: spacing.md,
+    margin: spacing.lg,
+    padding: spacing.md,
+    backgroundColor: colors.error,
+    borderRadius: spacing.lg,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
-}); 
+  logoutText: {
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.bold,
+    color: colors.textInverse,
+  },
+});
+
+export default ProfileScreen; 
