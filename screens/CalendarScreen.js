@@ -13,7 +13,7 @@ import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
-import { getJoinedSessionsForDate, getAllSessions, isSessionJoined } from '../data/mockSessions';
+import { getSessionsForDate, getAllSessions } from '../data/mockSessions';
 
 export const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -21,7 +21,7 @@ export const CalendarScreen = () => {
   const [currentWeek, setCurrentWeek] = useState(0);
 
   const getEventsForDate = (date) => {
-    return getJoinedSessionsForDate(date);
+    return getSessionsForDate(date);
   };
 
   const formatDate = (date) => {
@@ -140,13 +140,11 @@ export const CalendarScreen = () => {
     const allSessions = getAllSessions();
     
     allSessions.forEach(session => {
-      if (isSessionJoined(session.id)) {
-        const dateStr = session.date.toISOString().split('T')[0];
-        marked[dateStr] = {
-          marked: true,
-          dotColor: colors.primary,
-        };
-      }
+      const dateStr = session.date.toISOString().split('T')[0];
+      marked[dateStr] = {
+        marked: true,
+        dotColor: colors.primary,
+      };
     });
     
     marked[selectedDate.toISOString().split('T')[0]] = {

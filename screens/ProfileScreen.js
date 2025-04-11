@@ -106,9 +106,7 @@ export const ProfileScreen = () => {
           </View>
         </View>
 
-        <TouchableOpacity 
-        style={styles.logoutButton} 
-        onPress={() => router.push('/')}>
+        <TouchableOpacity style={styles.logoutButton}>
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
