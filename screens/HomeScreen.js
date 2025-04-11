@@ -5,10 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
-import { colors, typography, spacing } from '../constants/theme';
+import { colors, typography, spacing, shadows } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
@@ -44,17 +45,27 @@ const mockSessions = [
 export const HomeScreen = () => {
   return (
     <ScreenWrapper showBackButton={false}>
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.nameText}>Alex!</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.appTitle}>SmartSesh</Text>
+            <View style={styles.divider} />
+          </View>
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <Text style={styles.nameText}>Alex!</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
-            <TouchableOpacity onPress={() => router.push('/calendar')}>
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={() => router.push('/calendar')}
+            >
               <Text style={styles.viewAllText}>View All</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
@@ -80,18 +91,17 @@ export const HomeScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-          </View>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
             <TouchableOpacity
               style={styles.quickAction}
               onPress={() => router.push('/create-session')}
             >
               <View style={styles.quickActionIcon}>
-                <Ionicons name="add-circle" size={24} color={colors.primary} />
+                <Ionicons name="add-circle" size={28} color={colors.primary} />
               </View>
               <Text style={styles.quickActionText}>Create Session</Text>
+              <Text style={styles.quickActionSubtext}>Start a new study group</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -99,9 +109,10 @@ export const HomeScreen = () => {
               onPress={() => router.push('/groups')}
             >
               <View style={styles.quickActionIcon}>
-                <Ionicons name="search" size={24} color={colors.primary} />
+                <Ionicons name="search" size={28} color={colors.primary} />
               </View>
               <Text style={styles.quickActionText}>Find Groups</Text>
+              <Text style={styles.quickActionSubtext}>Join existing sessions</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -116,6 +127,26 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  titleContainer: {
+    marginBottom: spacing.xl,
+  },
+  appTitle: {
+    fontSize: typography.fontSize.xxxl,
+    fontFamily: typography.fontFamily.bold,
+    color: colors.primary,
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  divider: {
+    height: 3,
+    width: 40,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  welcomeContainer: {
+    marginTop: spacing.lg,
   },
   welcomeText: {
     fontSize: typography.fontSize.lg,
@@ -130,6 +161,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.xl,
+    paddingHorizontal: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -142,10 +174,16 @@ const styles = StyleSheet.create({
     color: colors.textDark,
     fontFamily: typography.fontFamily.bold,
   },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.xs,
+  },
   viewAllText: {
     color: colors.primary,
     fontSize: typography.fontSize.sm,
     fontFamily: typography.fontFamily.medium,
+    marginRight: spacing.xs,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -154,35 +192,53 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginTop: spacing.md,
+    gap: spacing.md,
   },
   quickAction: {
+    flex: 1,
+    backgroundColor: colors.backgroundDark,
+    borderRadius: spacing.lg,
+    padding: spacing.lg,
     alignItems: 'center',
-    padding: spacing.md,
-    width: '45%',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   quickActionIcon: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.backgroundDark,
+    backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
-    shadowColor: colors.textDark,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   quickActionText: {
     fontSize: typography.fontSize.md,
     color: colors.textDark,
-    fontFamily: typography.fontFamily.medium,
+    fontFamily: typography.fontFamily.bold,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+  quickActionSubtext: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textLight,
+    fontFamily: typography.fontFamily.regular,
     textAlign: 'center',
     marginTop: spacing.xs,
   },

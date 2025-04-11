@@ -5,11 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { Card } from '../components/Card';
-import { colors, typography, spacing } from '../constants/theme';
+import { colors, typography, spacing, shadows } from '../constants/theme';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
+import { Ionicons } from '@expo/vector-icons';
 
 // Mock data for calendar events
 const mockEvents = [
@@ -44,28 +46,28 @@ const mockEvents = [
 
 export const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('week'); // 'week' or 'month'
+  const [viewMode, setViewMode] = useState('week');
 
   const getEventsForDate = (date) => {
-    // In a real app, filter events based on the selected date
-    return mockEvents;
+    return mockEvents.filter(event => event.date === date.toISOString().split('T')[0]);
   };
 
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    const day = date.getDate();
+    const month = date.toLocaleString('default', { month: 'short' });
+    const weekday = date.toLocaleString('default', { weekday: 'short' });
+    return { day, month, weekday };
   };
 
   const renderDayEvents = () => {
     const events = getEventsForDate(selectedDate);
     if (events.length === 0) {
       return (
-        <Text style={styles.noEvents}>
-          No study sessions scheduled for this day
-        </Text>
+        <View style={styles.noEventsContainer}>
+          <Ionicons name="calendar-outline" size={48} color={colors.textLight} />
+          <Text style={styles.noEventsText}>No study sessions scheduled</Text>
+          <Text style={styles.noEventsSubtext}>for this day</Text>
+        </View>
       );
     }
 
@@ -80,10 +82,52 @@ export const CalendarScreen = () => {
     ));
   };
 
+  const renderDateScroller = () => {
+    return [...Array(7)].map((_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() + index);
+      const formattedDate = formatDate(date);
+      const isSelected = selectedDate.toDateString() === date.toDateString();
+      const hasEvents = getEventsForDate(date).length > 0;
+
+      return (
+        <TouchableOpacity
+          key={index}
+          style={[
+            styles.dateItem,
+            isSelected && styles.dateItemActive,
+            hasEvents && styles.dateItemHasEvents,
+          ]}
+          onPress={() => setSelectedDate(date)}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.weekdayText, isSelected && styles.weekdayTextActive]}>
+            {formattedDate.weekday}
+          </Text>
+          <Text style={[styles.dayText, isSelected && styles.dayTextActive]}>
+            {formattedDate.day}
+          </Text>
+          <Text style={[styles.monthText, isSelected && styles.monthTextActive]}>
+            {formattedDate.month}
+          </Text>
+          {hasEvents && <View style={styles.eventIndicator} />}
+        </TouchableOpacity>
+      );
+    });
+  };
+
   return (
     <ScreenWrapper>
-      <ScrollView style={styles.container}>
-        <Text style={styles.title}>Calendar</Text>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Calendar</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => router.push('/create-session')}
+          >
+            <Ionicons name="add" size={24} color={colors.textInverse} />
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.viewToggle}>
           <TouchableOpacity
@@ -124,25 +168,9 @@ export const CalendarScreen = () => {
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.dateScroller}
+          contentContainerStyle={styles.dateScrollerContent}
         >
-          {/* This would be dynamically generated based on viewMode */}
-          {[...Array(7)].map((_, index) => {
-            const date = new Date();
-            date.setDate(date.getDate() + index);
-            return (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.dateItem,
-                  selectedDate.toDateString() === date.toDateString() &&
-                    styles.dateItemActive,
-                ]}
-                onPress={() => setSelectedDate(date)}
-              >
-                <Text style={styles.dateText}>{formatDate(date)}</Text>
-              </TouchableOpacity>
-            );
-          })}
+          {renderDateScroller()}
         </ScrollView>
 
         <View style={styles.eventsList}>{renderDayEvents()}</View>
@@ -155,11 +183,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
   title: {
-    fontSize: typography.fontSize.xxl,
+    fontSize: typography.fontSize.xxxl,
     fontFamily: typography.fontFamily.bold,
     color: colors.textDark,
-    marginBottom: spacing.xl,
+  },
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   viewToggle: {
     flexDirection: 'row',
@@ -167,14 +216,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundDark,
     borderRadius: spacing.lg,
     padding: spacing.xs,
-    shadowColor: colors.textDark,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   toggleButton: {
     flex: 1,
@@ -184,14 +233,14 @@ const styles = StyleSheet.create({
   },
   toggleButtonActive: {
     backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   toggleText: {
     fontSize: typography.fontSize.md,
@@ -205,50 +254,92 @@ const styles = StyleSheet.create({
   dateScroller: {
     marginBottom: spacing.xl,
   },
+  dateScrollerContent: {
+    paddingHorizontal: spacing.md,
+  },
   dateItem: {
-    paddingHorizontal: spacing.lg,
+    width: 70,
     paddingVertical: spacing.md,
     marginRight: spacing.sm,
     borderRadius: spacing.lg,
     backgroundColor: colors.backgroundDark,
-    shadowColor: colors.textDark,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        ...shadows.sm,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   dateItemActive: {
     backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    ...Platform.select({
+      ios: {
+        ...shadows.md,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
-  dateText: {
-    fontSize: typography.fontSize.md,
+  dateItemHasEvents: {
+    borderWidth: 2,
+    borderColor: colors.primaryLight,
+  },
+  weekdayText: {
+    fontSize: typography.fontSize.sm,
+    fontFamily: typography.fontFamily.medium,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+  weekdayTextActive: {
+    color: colors.textInverse,
+  },
+  dayText: {
+    fontSize: typography.fontSize.xl,
+    fontFamily: typography.fontFamily.bold,
+    color: colors.textDark,
+    marginBottom: spacing.xs,
+  },
+  dayTextActive: {
+    color: colors.textInverse,
+  },
+  monthText: {
+    fontSize: typography.fontSize.sm,
     fontFamily: typography.fontFamily.medium,
     color: colors.textLight,
   },
-  dateTextActive: {
+  monthTextActive: {
     color: colors.textInverse,
-    fontFamily: typography.fontFamily.bold,
+  },
+  eventIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+    marginTop: spacing.xs,
   },
   eventsList: {
     gap: spacing.md,
     paddingBottom: spacing.xxl,
   },
-  noEvents: {
-    textAlign: 'center',
-    color: colors.textLight,
+  noEventsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xl,
+  },
+  noEventsText: {
     fontSize: typography.fontSize.lg,
     fontFamily: typography.fontFamily.medium,
-    marginTop: spacing.xxl,
+    color: colors.textDark,
+    marginTop: spacing.md,
+  },
+  noEventsSubtext: {
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.regular,
+    color: colors.textLight,
+    marginTop: spacing.xs,
   },
 }); 
