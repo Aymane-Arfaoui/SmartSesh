@@ -7,35 +7,50 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { colors, typography, spacing } from '../constants/theme';
+import { router } from 'expo-router';
 
-export const SignUpScreen = ({ navigation }) => {
-  const [formData, setFormData] = useState({
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+interface SignUpErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+export const SignUpScreen: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<SignUpErrors>({});
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: keyof FormData, value: string): void => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleSignUp = () => {
-    // Mock sign up logic
+  const handleSignUp = (): void => {
     console.log('Sign up attempt with:', formData);
-    navigation.navigate('Home');
+    router.replace('/home');
   };
 
-  const handleGoogleSignUp = () => {
-    // Mock Google sign up
+  const handleGoogleSignUp = (): void => {
     console.log('Google sign up attempt');
   };
 
@@ -108,7 +123,7 @@ export const SignUpScreen = ({ navigation }) => {
 
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={() => router.push('/login')}>
               <Text style={styles.loginLink}>Sign In</Text>
             </TouchableOpacity>
           </View>

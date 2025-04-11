@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -12,8 +14,23 @@ import { colors, typography, spacing } from '../constants/theme';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 
+interface Friend {
+  id: string;
+  name: string;
+  selected: boolean;
+}
+
+interface FormData {
+  course: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
 // Mock data for friends
-const mockFriends = [
+const mockFriends: Friend[] = [
   { id: '1', name: 'Sarah Johnson', selected: false },
   { id: '2', name: 'Michael Chen', selected: false },
   { id: '3', name: 'Emily Rodriguez', selected: false },
@@ -21,8 +38,8 @@ const mockFriends = [
   { id: '5', name: 'Jessica Lee', selected: false },
 ];
 
-export const CreateSessionScreen = () => {
-  const [formData, setFormData] = useState({
+export const CreateSessionScreen: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
     course: '',
     title: '',
     description: '',
@@ -30,14 +47,14 @@ export const CreateSessionScreen = () => {
     time: '',
     location: '',
   });
-  const [friends, setFriends] = useState(mockFriends);
-  const [selectedFriends, setSelectedFriends] = useState([]);
+  const [friends, setFriends] = useState<Friend[]>(mockFriends);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: keyof FormData, value: string): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const toggleFriendSelection = (friendId) => {
+  const toggleFriendSelection = (friendId: string): void => {
     setFriends(prevFriends =>
       prevFriends.map(friend =>
         friend.id === friendId
@@ -47,7 +64,7 @@ export const CreateSessionScreen = () => {
     );
   };
 
-  const handleCreateSession = () => {
+  const handleCreateSession = (): void => {
     console.log('Creating session with:', formData);
     router.back();
   };

@@ -5,6 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Input } from '../components/Input';
 import { Card } from '../components/Card';
@@ -12,8 +14,16 @@ import { colors, typography, spacing } from '../constants/theme';
 import { router } from 'expo-router';
 import { ScreenWrapper } from '../components/ScreenWrapper';
 
+interface Group {
+  id: string;
+  title: string;
+  course: string;
+  members: number;
+  description: string;
+}
+
 // Mock data for study groups
-const mockGroups = [
+const mockGroups: Group[] = [
   {
     id: '1',
     title: 'Calculus Study Group',
@@ -37,8 +47,8 @@ const mockGroups = [
   },
 ];
 
-export const GroupsScreen = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+export const GroupsScreen: React.FC = () => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   const filteredGroups = mockGroups.filter(
     (group) =>
@@ -65,7 +75,10 @@ export const GroupsScreen = () => {
               title={group.title}
               subtitle={`${group.course} • ${group.members} members`}
               description={group.description}
-              onPress={() => router.push(`/group/${group.id}`)}
+              onPress={() => router.replace({
+                pathname: '/groups',
+                params: { id: group.id }
+              })}
             />
           ))}
         </View>

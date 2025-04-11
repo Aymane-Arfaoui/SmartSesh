@@ -7,24 +7,26 @@ import {
   TouchableOpacity,
   Switch,
   Image,
+  ViewStyle,
+  TextStyle,
+  ImageStyle,
 } from 'react-native';
 import { Button } from '../components/Button';
 import { colors, typography, spacing } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
-export const ProfileScreen = ({ navigation }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
+export const ProfileScreen: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+  const [emailNotifications, setEmailNotifications] = useState<boolean>(true);
 
-  const handleLogout = () => {
-    // Mock logout
+  const handleLogout = (): void => {
     console.log('Logging out...');
-    navigation.navigate('Login');
+    router.replace('/login');
   };
 
-  const handleEditProfile = () => {
-    // Mock edit profile
+  const handleEditProfile = (): void => {
     console.log('Editing profile...');
   };
 

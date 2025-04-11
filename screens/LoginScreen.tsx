@@ -7,29 +7,51 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { colors, typography, spacing } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({});
+interface LoginErrors {
+  email?: string;
+  password?: string;
+}
 
-  const handleLogin = () => {
-    // Mock login logic
+export const LoginScreen: React.FC = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [errors, setErrors] = useState<LoginErrors>({});
+
+  const handleLogin = async (): Promise<void> => {
     console.log('Login attempt with:', { email, password });
+    await supabase.auth.signInWithPassword({ email, password })
+      .then(({ data, error }) => {
+        if (error) {
+          setErrors({ email: error.message });
+        } else {
+          AsyncStorage.setItem('session', JSON.stringify(data.session))
+          router.replace('/home');
+        }
+      })
+      .catch((error) => {
+        console.error('Login error:', error);
+        setErrors({ email: 'Login failed. Please try again.' });
+      });
     router.replace('/home');
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google login
-    console.log('Google login attempt');
-    router.replace('/home');
-  };
+  // const handleGoogleLogin = (): void => {
+  //   supabase.auth.signInWithOAuth({
+  //     provider: 'google',
+  //   });
+  //   router.replace('/home');
+  // };
 
   return (
     <KeyboardAvoidingView
@@ -62,20 +84,13 @@ export const LoginScreen = () => {
             error={errors.password}
           />
 
-          <TouchableOpacity
-            style={styles.forgotPassword}
-            onPress={() => router.push('/forgot-password')}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
           <Button
             title="Sign In"
             onPress={handleLogin}
             style={styles.loginButton}
           />
 
-          <View style={styles.divider}>
+          {/* <View style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OR</Text>
             <View style={styles.dividerLine} />
@@ -86,11 +101,11 @@ export const LoginScreen = () => {
             variant="outline"
             onPress={handleGoogleLogin}
             style={styles.googleButton}
-          />
+          /> */}
 
           <View style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/signup')}>
+            <TouchableOpacity onPress={() => router.replace('./signup')}>
               <Text style={styles.signUpLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>

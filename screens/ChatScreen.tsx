@@ -8,12 +8,23 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ViewStyle,
+  TextStyle,
+  TextInputProps,
 } from 'react-native';
 import { colors, typography, spacing } from '../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
+interface Message {
+  id: string;
+  sender: string;
+  message: string;
+  timestamp: string;
+  isCurrentUser: boolean;
+}
+
 // Mock data for messages
-const mockMessages = [
+const mockMessages: Message[] = [
   {
     id: '1',
     sender: 'Sarah Johnson',
@@ -44,12 +55,11 @@ const mockMessages = [
   },
 ];
 
-export const ChatScreen = ({ navigation }) => {
-  const [message, setMessage] = useState('');
+export const ChatScreen: React.FC = () => {
+  const [message, setMessage] = useState<string>('');
 
-  const handleSend = () => {
+  const handleSend = (): void => {
     if (message.trim()) {
-      // Mock sending message
       console.log('Sending message:', message);
       setMessage('');
     }
