@@ -22,13 +22,13 @@ export const LoginScreen = () => {
   const handleLogin = () => {
     // Mock login logic
     console.log('Login attempt with:', { email, password });
-    router.replace('/home');
+    router.replace('/(tabs)/home');
   };
 
   const handleGoogleLogin = () => {
     // Mock Google login
     console.log('Google login attempt');
-    router.replace('/home');
+    router.replace('/(tabs)/home');
   };
 
   return (
